@@ -3,6 +3,7 @@
 namespace App\DependencyInjection\Compiler;
 
 use App\DependencyInjection\Attribute\Cache;
+use App\Util\Model\ProxyClassData;
 use App\Util\ProxyGenerator;
 use Symfony\Component\Config\ConfigCacheFactory;
 use Symfony\Component\Config\ConfigCacheFactoryInterface;
@@ -30,17 +31,12 @@ class ProxyPass extends AbstractRecursivePass
             foreach ($parameter->getAttributes(Cache::class) as $attribute) {
                 /** @var Definition $argumentDef */
                 $argumentDef = $processValue->getArgument($parameter->getPosition());
-
                 $proxyClassData = ProxyGenerator::generate(
                     $argumentDef->getClass(),
                     $this->container->getReflectionClass($argumentDef->getClass())
                 );
+                $proxyDef = $this->getProxyDefinition($proxyClassData, $argumentDef);
 
-                eval($proxyClassData->body);
-
-                $proxyDef = $this->container
-                    ->register("proxy_cache.$proxyClassData->hash", $proxyClassData->classFQCN)
-                    ->setArguments($argumentDef->getArguments());
                 try {
                     $processValue->replaceArgument('$'.$parameter->getName(), $proxyDef);
                 } catch (OutOfBoundsException) {
@@ -69,5 +65,18 @@ class ProxyPass extends AbstractRecursivePass
     private function getCacheDir(): string
     {
         return $this->container->getParameter('kernel.cache_dir').'/ProxyCache';
+    }
+
+    private function getProxyDefinition(ProxyClassData $proxyClassData, Definition $argumentDefinition): Definition
+    {
+        $proxyServiceId = "proxy_cache.$proxyClassData->hash";
+        if ($this->container->hasDefinition($proxyServiceId)) {
+            return $this->container->getDefinition($proxyServiceId);
+        }
+
+        return $this->container
+            ->register($proxyServiceId, $proxyClassData->classFQCN)
+            ->setArguments($argumentDefinition->getArguments())
+        ;
     }
 }
