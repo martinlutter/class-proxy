@@ -49,7 +49,7 @@ class ProxyPass extends AbstractRecursivePass
 
                 $this->getConfigCacheFactory()->cache(
                     "{$this->getCacheDir()}/$proxyClassData->className.php",
-                    function (ConfigCacheInterface $cache) use ($proxyClassData) {
+                    static function (ConfigCacheInterface $cache) use ($proxyClassData) {
                         $cache->write("<?php\n\n{$proxyClassData->body}\n");
                     }
                 );
@@ -63,14 +63,7 @@ class ProxyPass extends AbstractRecursivePass
 
     private function getConfigCacheFactory(): ConfigCacheFactoryInterface
     {
-        if (!$this->container->has('proxy_cache.cache_factory')) {
-            $this->container->set(
-                'proxy_cache.cache_factory',
-                $this->configCacheFactory ??= new ConfigCacheFactory($this->container->getParameter('kernel.debug'))
-            );
-        }
-
-        return $this->configCacheFactory;
+        return $this->configCacheFactory ??= new ConfigCacheFactory($this->container->getParameter('kernel.debug'));
     }
 
     private function getCacheDir(): string
