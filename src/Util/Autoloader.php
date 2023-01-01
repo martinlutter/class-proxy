@@ -1,6 +1,6 @@
 <?php
 
-namespace App\DependencyInjection;
+namespace App\Util;
 
 class Autoloader
 {

@@ -2,8 +2,8 @@
 
 namespace App;
 
-use App\DependencyInjection\Autoloader;
 use App\DependencyInjection\Compiler\ProxyPass;
+use App\Util\Autoloader;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;

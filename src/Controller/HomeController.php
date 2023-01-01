@@ -12,13 +12,13 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class HomeController extends AbstractController
 {
-    public function __construct(#[Autowire(service: RepoClass::class)] #[Cache] private RepoInterface $repo)
+    public function __construct(#[Autowire(service: RepoClass::class)] #[Cache] private RepoInterface $repo, #[Autowire(service: RepoClass::class)] private RepoInterface $repoRegular)
     {
     }
 
     #[Route('/')]
     public function __invoke(): Response
     {
-        return new Response($this->repo->byStringParam('eqweqe').$this->repo->byStringParam('eqweqe'));
+        return new Response($this->repo->byStringParam('a').$this->repo->byStringParam('a').$this->repo->byStringParam('b').$this->repoRegular->byStringParam('b'));
     }
 }
