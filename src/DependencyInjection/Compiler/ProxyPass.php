@@ -27,6 +27,7 @@ class ProxyPass extends AbstractRecursivePass
             return $value;
         }
 
+        //todo: should also check @required public methods
         foreach ($reflectionClass->getConstructor()?->getParameters() ?? [] as $parameter) {
             foreach ($parameter->getAttributes(Cache::class) as $attribute) {
                 /** @var Definition $argumentDef */

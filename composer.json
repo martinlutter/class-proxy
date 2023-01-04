@@ -65,6 +65,7 @@
         }
     },
     "require-dev": {
+        "codeception/codeception": "^5.0",
         "vimeo/psalm": "^5.4"
     }
 }
