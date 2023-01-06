@@ -35,6 +35,6 @@ jobs:
                   path: vendor
                   key: ${{ runner.os }}-{{ hashFiles(composer.lock) }}-{{ hashFiles(symfony.lock) }}
             - name: Composer install
-              run: docker compose exec -T php 'composer install'
+              run: docker compose exec php sh -c 'composer install'
             - name: Run tests
-              run: docker compose exec -T php './vendor/bin/codecept run'
+              run: docker compose exec php sh -c './vendor/bin/codecept run'
