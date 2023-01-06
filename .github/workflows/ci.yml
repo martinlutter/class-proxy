@@ -10,10 +10,13 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v3
+
             - name: Pull images
               run: docker compose pull
+
             - name: Start services
               run: docker compose up --build -d
+
             - name: Wait for services
               run: |
                   while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker compose ps -q php)")"; do
@@ -24,17 +27,22 @@ jobs:
                     esac
                   done
                   exit 1
+
             - name: Check HTTP reachability
               run: curl http://localhost
+
             - name: Check HTTPS reachability
               run: curl -k https://localhost
+
             - name: Cache
               uses: actions/cache@v3
               id: composer-cache
               with:
                   path: vendor
                   key: ${{ runner.os }}-{{ hashFiles(composer.lock) }}-{{ hashFiles(symfony.lock) }}
+
             - name: Composer install
               run: docker compose exec php sh -c 'composer install'
+
             - name: Run tests
               run: docker compose exec php sh -c './vendor/bin/codecept run'
