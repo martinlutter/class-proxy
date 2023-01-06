@@ -38,8 +38,8 @@ PROXY;
         $result = '';
 
         foreach ($reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if (!$method->hasReturnType()
-                || ($method->getReturnType() instanceof \ReflectionNamedType
+            if ($method->isConstructor() ||
+                ($method->getReturnType() instanceof \ReflectionNamedType
                     && $method->getReturnType()->getName() === 'void')
             ) {
                 continue;
@@ -66,14 +66,15 @@ PROXY;
             $result .= <<<METHOD
 public function {$method->getName()}($parametersWithTypesString)$returnType
 {
+    \$methodName = '{$method->getName()}';
     \$argsHash = md5(serialize(func_get_args()));
-    if (isset(\$this->_cachedData[\$argsHash])) {
-        return \$this->_cachedData[\$argsHash];
+    if (isset(\$this->_cachedData[\$methodName][\$argsHash])) {
+        return \$this->_cachedData[\$methodName][\$argsHash];
     }
-    
-    \$result = parent::{$method->getName()}($parametersWithoutTypesString);
-    
-    return \$this->_cachedData[\$argsHash] = \$result;
+
+    \$result = parent::\$methodName($parametersWithoutTypesString);
+
+    return \$this->_cachedData[\$methodName][\$argsHash] = \$result;
 }
 
 METHOD;
