@@ -33,7 +33,7 @@ class ProxyGeneratorTest extends Unit
         ));
 
         $this->assertStringContainsString('public function noParams(): string', $proxyData->body);
-        $this->assertStringContainsString('parent::noParams()', $proxyData->body);
+        $this->assertStringContainsString('$methodName = \'noParams\';', $proxyData->body);
 
         eval($proxyData->body);
         /** @var OnePublicMethodClass $object */
