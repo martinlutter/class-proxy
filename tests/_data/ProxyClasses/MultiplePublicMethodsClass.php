@@ -19,13 +19,23 @@ class MultiplePublicMethodsClass
     {
         $this->lastAction = 'called oneParam';
 
-        return 42;
+        return strlen($param1);
     }
 
-    public function moreParams(int $param1, array $param2): array
+    public function moreParams(int $param1, array &$param2): array
     {
         $this->lastAction = 'called moreParams';
 
-        return ['text1', 42, new EmptyClass()];
+        return ['text1', $param1, new EmptyClass()];
+    }
+
+    public function variadicParams(\Stringable $param1, array ...$param2): \Stringable|string
+    {
+        return 'text';
+    }
+
+    public function complexParamTypes(\Stringable|string $param1, \Stringable&\Serializable $param2): bool
+    {
+        return true;
     }
 }

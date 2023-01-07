@@ -28,9 +28,9 @@ class ProxyGeneratorTest extends Unit
     public function testOnePublicMethod(): void
     {
         $proxyData = ProxyGenerator::generate(
-            OnePublicMethodClass::class, new \ReflectionClass(
-            OnePublicMethodClass::class
-        ));
+            OnePublicMethodClass::class,
+            new \ReflectionClass(OnePublicMethodClass::class)
+        );
 
         $this->assertStringContainsString('public function noParams(): string', $proxyData->body);
         $this->assertStringContainsString('$methodName = \'noParams\';', $proxyData->body);
@@ -45,49 +45,82 @@ class ProxyGeneratorTest extends Unit
     public function testMultiplePublicMethods(): void
     {
         $proxyData = ProxyGenerator::generate(
-            MultiplePublicMethodsClass::class, new \ReflectionClass(
-            MultiplePublicMethodsClass::class
-        ));
+            MultiplePublicMethodsClass::class,
+            new \ReflectionClass(MultiplePublicMethodsClass::class)
+        );
 
         $this->assertStringNotContainsString('__construct', $proxyData->body);
         $this->assertStringContainsString("public function noParamsAndReturnType()\n", $proxyData->body);
         $this->assertStringContainsString("public function oneParam(string \$param1): int\n", $proxyData->body);
+    }
+
+    public function testReferenceParam(): void
+    {
+        $proxyData = ProxyGenerator::generate(
+            MultiplePublicMethodsClass::class, new \ReflectionClass(
+            MultiplePublicMethodsClass::class
+        ));
         $this->assertStringContainsString(
-            "public function moreParams(int \$param1, array \$param2): array\n",
+            "public function moreParams(int \$param1, array &\$param2): array\n",
             $proxyData->body
+        );
+        $this->assertStringContainsString('parent::$methodName($param1, $param2)', $proxyData->body);
+    }
+
+    public function testComplexTypes(): void
+    {
+        $proxyData = ProxyGenerator::generate(
+            MultiplePublicMethodsClass::class,
+            new \ReflectionClass(MultiplePublicMethodsClass::class)
+        );
+        $this->assertStringContainsString(
+            "public function variadicParams(\Stringable \$param1, array ...\$param2): \Stringable|string\n",
+            $proxyData->body
+        );
+        $this->assertStringContainsString(
+            "public function complexParamTypes(\Stringable|string \$param1, \Stringable&\Serializable \$param2): bool\n",
+            $proxyData->body
+        );
+    }
+
+    public function testCaching(): void
+    {
+        $proxyData = ProxyGenerator::generate(
+            MultiplePublicMethodsClass::class,
+            new \ReflectionClass(MultiplePublicMethodsClass::class)
         );
 
         eval($proxyData->body);
         /** @var MultiplePublicMethodsClass $object */
         $object = new $proxyData->classFQCN;
 
-        //test returned values, check that they are the same & that the original method is not called a second time
-        $this->assertEquals('text', $object->noParamsAndReturnType());
-        $this->assertEquals('called noParamsAndReturnType', $object->lastAction);
+        $this->assertEquals('text', $object->noParamsAndReturnType(), 'check params first time');
+        $this->assertEquals('called noParamsAndReturnType', $object->lastAction, 'original method called');
         $object->lastAction = '';
-        $this->assertEquals('text', $object->noParamsAndReturnType());
-        $this->assertEquals('', $object->lastAction);
+        $this->assertEquals('text', $object->noParamsAndReturnType(), 'check params second time');
+        $this->assertEquals('', $object->lastAction, 'cached result returned');
 
-        $this->assertEquals(42, $object->oneParam('tralala'));
-        $this->assertEquals('called oneParam', $object->lastAction);
+        $this->assertEquals(7, $object->oneParam('tralala'), 'check params first time');
+        $this->assertEquals('called oneParam', $object->lastAction, 'original method called');
         $object->lastAction = '';
-        $this->assertEquals(42, $object->oneParam('tralala'));
-        $this->assertEquals('', $object->lastAction);
+        $this->assertEquals(7, $object->oneParam('tralala'), 'check params second time');
+        $this->assertEquals('', $object->lastAction, 'cached result returned');
+        $this->assertEquals(3, $object->oneParam('bla'), 'check params first time');
+        $this->assertEquals('called oneParam', $object->lastAction, 'original method called');
+        $object->lastAction = '';
+        $this->assertEquals(3, $object->oneParam('bla'), 'check params second time');
+        $this->assertEquals('', $object->lastAction, 'cached result returned');
 
-        $this->assertEquals(['text1', 42, new EmptyClass()], $object->moreParams(1, []));
-        $this->assertEquals('called moreParams', $object->lastAction);
+        $array = [];
+        $this->assertEquals(['text1', 1, new EmptyClass()], $object->moreParams(1, $array), 'check params first time');
+        $this->assertEquals('called moreParams', $object->lastAction, 'original method called');
         $object->lastAction = '';
-        $this->assertEquals(['text1', 42, new EmptyClass()], $object->moreParams(1, []));
-        $this->assertEquals('', $object->lastAction);
+        $this->assertEquals(['text1', 4, new EmptyClass()], $object->moreParams(4, $array), 'check params first time');
+        $this->assertEquals('called moreParams', $object->lastAction, 'original method called');
+        $object->lastAction = '';
+        $this->assertEquals(['text1', 1, new EmptyClass()], $object->moreParams(1, $array), 'check params second time');
+        $this->assertEquals('', $object->lastAction, 'cached result returned');
+        $this->assertEquals(['text1', 4, new EmptyClass()], $object->moreParams(4, $array), 'check params second time');
+        $this->assertEquals('', $object->lastAction, 'cached result returned');
     }
-
-//    public function testComplexParameterTypes(): void
-//    {
-//
-//    }
-
-//    public function testComplexReturnTypes(): void
-//    {
-//
-//    }
 }

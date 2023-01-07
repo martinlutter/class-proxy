@@ -48,20 +48,18 @@ PROXY;
             $parametersWithTypes = [];
             $parametersWithoutTypes = [];
             foreach ($method->getParameters() as $parameter) {
-                if ($parameter->getType() && !$parameter->getType() instanceof \ReflectionNamedType) {
-                    throw new \LogicException('Composite types not supported for now');
-                }
-
-                $parametersWithTypes[] = ($parameter->allowsNull() ? '?' : '').$parameter->getType()?->getName()
-                    .' $'.$parameter->getName()
+                //todo: what about method/param attributes? check what doctrine does
+                $parametersWithTypes[] = self::stringifyTypes($parameter->getType()).' '
+                    .($parameter->isPassedByReference() ? '&' : '')
+                    .($parameter->isVariadic() ? '...' : '')
+                    .'$'.$parameter->getName()
                     .($parameter->isDefaultValueAvailable() ? (' = '.$parameter->getDefaultValue()) : '');
                 $parametersWithoutTypes[] = '$'.$parameter->getName();
             }
 
             $parametersWithTypesString = implode(', ', $parametersWithTypes);
             $parametersWithoutTypesString = implode(', ', $parametersWithoutTypes);
-            $returnType = $method->getReturnType() instanceof \ReflectionNamedType
-                ? (': '.$method->getReturnType()->getName()) : '';
+            $returnType = $method->getReturnType() ? (': '.self::stringifyTypes($method->getReturnType())) : '';
 
             $result .= <<<METHOD
 public function {$method->getName()}($parametersWithTypesString)$returnType
@@ -82,5 +80,33 @@ METHOD;
         }
 
         return $result;
+    }
+
+    private static function stringifyTypes(?\ReflectionType $reflectionType): string
+    {
+        if (!$reflectionType) {
+            return '';
+        }
+
+        $types = [];
+        if ($reflectionType instanceof \ReflectionIntersectionType || $reflectionType instanceof \ReflectionUnionType) {
+            foreach ($reflectionType->getTypes() as $type) {
+                $types[] = self::stringifyTypes($type);
+            }
+
+            return implode(
+                match ($reflectionType::class) {
+                    \ReflectionIntersectionType::class => '&',
+                    \ReflectionUnionType::class => '|',
+                },
+                $types
+            );
+        }
+
+        if ($reflectionType instanceof \ReflectionNamedType) {
+            return (!$reflectionType->isBuiltin() ? '\\' : '').$reflectionType;
+        }
+
+        throw new \InvalidArgumentException(get_class($reflectionType).' not supported');
     }
 }

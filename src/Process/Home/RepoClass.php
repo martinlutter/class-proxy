@@ -10,9 +10,13 @@ class RepoClass implements RepoInterface
         return "Wowee by string - $param";
     }
 
-    public function byIntParam(int $param): int
+    public function byIntParam(?int $param): int
     {
         dump('dump from repo class');
         return "Wowee by int - $param";
+    }
+
+    public function comp(RepoInterface & \Stringable $bla): RepoInterface | \Serializable
+    {
     }
 }
