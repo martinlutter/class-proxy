@@ -11,6 +11,7 @@ use Symfony\Component\Config\ConfigCacheInterface;
 use Symfony\Component\DependencyInjection\Compiler\AbstractRecursivePass;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\OutOfBoundsException;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class ProxyPass extends AbstractRecursivePass
 {
@@ -18,44 +19,84 @@ class ProxyPass extends AbstractRecursivePass
 
     protected function processValue(mixed $value, bool $isRoot = false)
     {
-        $processValue = parent::processValue($value, $isRoot);
+        $processedValue = parent::processValue($value, $isRoot);
 
-        if (!$value instanceof Definition || $value->isAbstract() || !$value->getClass()) {
-            return $value;
-        }
-        if (!$reflectionClass = $this->container->getReflectionClass($value->getClass(), false)) {
-            return $value;
+        if (!$processedValue instanceof Definition || $processedValue->isAbstract() || !$processedValue->getClass()) {
+            return $processedValue;
         }
 
-        //todo: should also check @required public methods
-        foreach ($reflectionClass->getConstructor()?->getParameters() ?? [] as $parameter) {
-            foreach ($parameter->getAttributes(Cache::class) as $attribute) {
-                /** @var Definition $argumentDef */
-                $argumentDef = $processValue->getArgument($parameter->getPosition());
-                $proxyClassData = ProxyGenerator::generate(
-                    $argumentDef->getClass(),
-                    $this->container->getReflectionClass($argumentDef->getClass())
-                );
-                $proxyDef = $this->getProxyDefinition($proxyClassData, $argumentDef);
+        if (!$reflectionClass = $this->container->getReflectionClass($processedValue->getClass(), false)) {
+            return $processedValue;
+        }
 
-                try {
-                    $processValue->replaceArgument('$'.$parameter->getName(), $proxyDef);
-                } catch (OutOfBoundsException) {
-                    $processValue->replaceArgument($parameter->getPosition(), $proxyDef);
+        foreach ($reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            if (!$method->getAttributes(Required::class)) {
+                continue;
+            }
+
+            foreach ($method->getParameters() as $parameter) {
+                if (!$parameter->getAttributes(Cache::class)) {
+                    continue;
                 }
 
-                $this->getConfigCacheFactory()->cache(
-                    "{$this->getCacheDir()}/$proxyClassData->className.php",
-                    static function (ConfigCacheInterface $cache) use ($proxyClassData) {
-                        $cache->write("<?php\n\n{$proxyClassData->body}\n");
+                $methodCalls = $processedValue->getMethodCalls();
+                foreach ($methodCalls as &$methodCall) {
+                    [$methodName, $arguments] = $methodCall;
+                    if ($methodName !== $method->getName()) {
+                        continue;
                     }
-                );
 
-                break;
+                    /** @var Definition $argumentDef */
+                    $argumentDef = $arguments[$parameter->getPosition()];
+                    $proxyClassData = ProxyGenerator::generate(
+                        $argumentDef->getClass(),
+                        $this->container->getReflectionClass($argumentDef->getClass())
+                    );
+                    $proxyDef = $this->getProxyDefinition($proxyClassData, $argumentDef);
+
+                    $arguments[$parameter->getPosition()] = $proxyDef;
+                    $methodCall = [$methodName, $arguments];
+
+                    $this->getConfigCacheFactory()->cache(
+                        "{$this->getCacheDir()}/$proxyClassData->className.php",
+                        static function (ConfigCacheInterface $cache) use ($proxyClassData) {
+                            $cache->write("<?php\n\n{$proxyClassData->body}\n");
+                        }
+                    );
+                }
+
+                $processedValue->setMethodCalls($methodCalls);
             }
         }
 
-        return $processValue;
+        foreach ($reflectionClass->getConstructor()?->getParameters() ?? [] as $parameter) {
+            if (!$parameter->getAttributes(Cache::class)) {
+                continue;
+            }
+
+            /** @var Definition $argumentDef */
+            $argumentDef = $processedValue->getArgument($parameter->getPosition());
+            $proxyClassData = ProxyGenerator::generate(
+                $argumentDef->getClass(),
+                $this->container->getReflectionClass($argumentDef->getClass())
+            );
+            $proxyDef = $this->getProxyDefinition($proxyClassData, $argumentDef);
+
+            try {
+                $processedValue->replaceArgument('$'.$parameter->getName(), $proxyDef);
+            } catch (OutOfBoundsException) {
+                $processedValue->replaceArgument($parameter->getPosition(), $proxyDef);
+            }
+
+            $this->getConfigCacheFactory()->cache(
+                "{$this->getCacheDir()}/$proxyClassData->className.php",
+                static function (ConfigCacheInterface $cache) use ($proxyClassData) {
+                    $cache->write("<?php\n\n{$proxyClassData->body}\n");
+                }
+            );
+        }
+
+        return $processedValue;
     }
 
     private function getConfigCacheFactory(): ConfigCacheFactoryInterface
@@ -77,7 +118,6 @@ class ProxyPass extends AbstractRecursivePass
 
         return $this->container
             ->register($proxyServiceId, $proxyClassData->classFQCN)
-            ->setArguments($argumentDefinition->getArguments())
-        ;
+            ->setArguments($argumentDefinition->getArguments());
     }
 }
