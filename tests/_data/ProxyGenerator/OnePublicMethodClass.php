@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\_data\ProxyClasses;
+namespace App\Tests\_data\ProxyGenerator;
 
 class OnePublicMethodClass
 {

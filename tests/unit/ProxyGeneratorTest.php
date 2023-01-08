@@ -2,9 +2,9 @@
 
 namespace App\Tests\unit;
 
-use App\Tests\_data\ProxyClasses\EmptyClass;
-use App\Tests\_data\ProxyClasses\MultiplePublicMethodsClass;
-use App\Tests\_data\ProxyClasses\OnePublicMethodClass;
+use App\Tests\_data\ProxyGenerator\EmptyClass;
+use App\Tests\_data\ProxyGenerator\MultiplePublicMethodsClass;
+use App\Tests\_data\ProxyGenerator\OnePublicMethodClass;
 use App\Util\ProxyGenerator;
 use Codeception\Test\Unit;
 

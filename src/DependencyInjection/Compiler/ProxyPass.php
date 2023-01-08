@@ -20,7 +20,7 @@ class ProxyPass extends AbstractRecursivePass
     {
         $processValue = parent::processValue($value, $isRoot);
 
-        if (!$value instanceof Definition || !$value->isAutowired() || $value->isAbstract() || !$value->getClass()) {
+        if (!$value instanceof Definition || $value->isAbstract() || !$value->getClass()) {
             return $value;
         }
         if (!$reflectionClass = $this->container->getReflectionClass($value->getClass(), false)) {
