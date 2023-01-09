@@ -18,7 +18,7 @@ class Kernel extends BaseKernel
         $container->addCompilerPass(new ProxyPass(), PassConfig::TYPE_REMOVE);
     }
 
-    public function boot()
+    public function boot(): void
     {
         parent::boot();
 

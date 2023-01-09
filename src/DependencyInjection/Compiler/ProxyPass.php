@@ -48,21 +48,21 @@ class ProxyPass extends AbstractRecursivePass
 
                     /** @var Definition $argumentDef */
                     $argumentDef = $arguments[$parameter->getPosition()];
-                    $proxyClassData = ProxyGenerator::generate(
-                        $argumentDef->getClass(),
-                        $this->container->getReflectionClass($argumentDef->getClass())
-                    );
-                    $proxyDef = $this->getProxyDefinition($proxyClassData, $argumentDef);
+                    $argumentClass = $argumentDef->getClass();
+                    if (!$argumentClass) {
+                        continue;
+                    }
 
-                    $arguments[$parameter->getPosition()] = $proxyDef;
+                    $argumentClassReflection = $this->container->getReflectionClass($argumentClass);
+                    if (!$argumentClassReflection) {
+                        continue;
+                    }
+
+                    $proxyClassData = ProxyGenerator::generate($argumentClass, $argumentClassReflection);
+                    $arguments[$parameter->getPosition()] = $this->getProxyDefinition($proxyClassData, $argumentDef);
                     $methodCall = [$methodName, $arguments];
 
-                    $this->getConfigCacheFactory()->cache(
-                        "{$this->getCacheDir()}/$proxyClassData->className.php",
-                        static function (ConfigCacheInterface $cache) use ($proxyClassData) {
-                            $cache->write("<?php\n\n{$proxyClassData->body}\n");
-                        }
-                    );
+                    $this->cacheClass($proxyClassData);
                 }
 
                 $processedValue->setMethodCalls($methodCalls);
@@ -76,10 +76,17 @@ class ProxyPass extends AbstractRecursivePass
 
             /** @var Definition $argumentDef */
             $argumentDef = $processedValue->getArgument($parameter->getPosition());
-            $proxyClassData = ProxyGenerator::generate(
-                $argumentDef->getClass(),
-                $this->container->getReflectionClass($argumentDef->getClass())
-            );
+            $argumentClass = $argumentDef->getClass();
+            if (!$argumentClass) {
+                continue;
+            }
+
+            $argumentClassReflection = $this->container->getReflectionClass($argumentClass);
+            if (!$argumentClassReflection) {
+                continue;
+            }
+
+            $proxyClassData = ProxyGenerator::generate($argumentClass, $argumentClassReflection);
             $proxyDef = $this->getProxyDefinition($proxyClassData, $argumentDef);
 
             try {
@@ -88,12 +95,7 @@ class ProxyPass extends AbstractRecursivePass
                 $processedValue->replaceArgument($parameter->getPosition(), $proxyDef);
             }
 
-            $this->getConfigCacheFactory()->cache(
-                "{$this->getCacheDir()}/$proxyClassData->className.php",
-                static function (ConfigCacheInterface $cache) use ($proxyClassData) {
-                    $cache->write("<?php\n\n{$proxyClassData->body}\n");
-                }
-            );
+            $this->cacheClass($proxyClassData);
         }
 
         return $processedValue;
@@ -101,7 +103,9 @@ class ProxyPass extends AbstractRecursivePass
 
     private function getConfigCacheFactory(): ConfigCacheFactoryInterface
     {
-        return $this->configCacheFactory ??= new ConfigCacheFactory($this->container->getParameter('kernel.debug'));
+        return $this->configCacheFactory ??= new ConfigCacheFactory(
+            (bool) $this->container->getParameter('kernel.debug')
+        );
     }
 
     private function getCacheDir(): string
@@ -119,5 +123,15 @@ class ProxyPass extends AbstractRecursivePass
         return $this->container
             ->register($proxyServiceId, $proxyClassData->classFQCN)
             ->setArguments($argumentDefinition->getArguments());
+    }
+
+    private function cacheClass(ProxyClassData $proxyClassData): void
+    {
+        $this->getConfigCacheFactory()->cache(
+            "{$this->getCacheDir()}/$proxyClassData->className.php",
+            static function (ConfigCacheInterface $cache) use ($proxyClassData) {
+                $cache->write("<?php\n\n{$proxyClassData->body}\n");
+            }
+        );
     }
 }

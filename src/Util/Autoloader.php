@@ -2,6 +2,8 @@
 
 namespace App\Util;
 
+use InvalidArgumentException;
+
 class Autoloader
 {
     /**
@@ -11,19 +13,14 @@ class Autoloader
      * 2. Remove namespace separators from remaining class name.
      * 3. Return PHP filename from proxy-dir with the result from 2.
      *
-     * @param string $proxyDir
-     * @param string $proxyNamespace
-     * @param string $className
      * @psalm-param class-string $className
-     *
-     * @return string
      *
      * @throws InvalidArgumentException
      */
-    public static function resolveFile($proxyDir, $proxyNamespace, $className)
+    public static function resolveFile(string $proxyDir, string $proxyNamespace, string $className): string
     {
         if (strpos($className, $proxyNamespace) !== 0) {
-            throw InvalidArgumentException::notProxyClass($className, $proxyNamespace);
+            throw new InvalidArgumentException("$className is not a proxy class from $proxyNamespace");
         }
 
         // remove proxy namespace from class name
@@ -36,25 +33,16 @@ class Autoloader
     }
 
     /**
-     * Registers and returns autoloader callback for the given proxy dir and namespace.
-     *
-     * @param string        $proxyDir
-     * @param string        $proxyNamespace
-     * @param callable|null $notFoundCallback Invoked when the proxy file is not found.
-     *
-     * @return \Closure
+     * @psalm-suppress UnresolvableInclude
+     * @psalm-suppress ArgumentTypeCoercion
      *
      * @throws InvalidArgumentException
      */
-    public static function register($proxyDir, $proxyNamespace, $notFoundCallback = null)
+    public static function register(string $proxyDir, string $proxyNamespace): \Closure
     {
         $proxyNamespace = ltrim($proxyNamespace, '\\');
 
-        if ($notFoundCallback !== null && ! is_callable($notFoundCallback)) {
-            throw InvalidArgumentException::invalidClassNotFoundCallback($notFoundCallback);
-        }
-
-        $autoloader = static function ($className) use ($proxyDir, $proxyNamespace, $notFoundCallback) {
+        $autoloader = static function (string $className) use ($proxyDir, $proxyNamespace): void {
             if ($proxyNamespace === '') {
                 return;
             }
@@ -63,11 +51,8 @@ class Autoloader
                 return;
             }
 
+            /** @psalm-param class-string $className */
             $file = Autoloader::resolveFile($proxyDir, $proxyNamespace, $className);
-
-            if ($notFoundCallback && ! file_exists($file)) {
-                call_user_func($notFoundCallback, $proxyDir, $proxyNamespace, $className);
-            }
 
             require $file;
         };

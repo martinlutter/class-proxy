@@ -9,15 +9,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Service\Attribute\Required;
 
 class HomeController extends AbstractController
 {
     private RepoInterface $repo;
     private RepoInterface $repoRegular;
 
-    #[Required]
-    public function setDependencies(
+    public function __construct(
         #[Autowire(service: RepoClass::class)] #[Cache] RepoInterface $repo,
         #[Autowire(service: RepoClass::class)] RepoInterface $repoRegular
     ) {
