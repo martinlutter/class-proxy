@@ -3,6 +3,7 @@
 namespace App\Util;
 
 use App\Util\Model\ProxyClassData;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class ProxyGenerator
 {
@@ -38,8 +39,8 @@ PROXY;
         $result = '';
 
         foreach ($reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->isConstructor() ||
-                ($method->getReturnType() instanceof \ReflectionNamedType
+            if ($method->isConstructor() || $method->getAttributes(Required::class)
+                || ($method->getReturnType() instanceof \ReflectionNamedType
                     && $method->getReturnType()->getName() === 'void')
             ) {
                 continue;

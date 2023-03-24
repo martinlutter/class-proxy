@@ -122,7 +122,11 @@ class ProxyPass extends AbstractRecursivePass
 
         return $this->container
             ->register($proxyServiceId, $proxyClassData->classFQCN)
-            ->setArguments($argumentDefinition->getArguments());
+            ->setArguments($argumentDefinition->getArguments())
+            ->setMethodCalls($argumentDefinition->getMethodCalls())
+            ->setTags($argumentDefinition->getTags())
+            ->setProperties($argumentDefinition->getProperties())
+        ;
     }
 
     private function cacheClass(ProxyClassData $proxyClassData): void
