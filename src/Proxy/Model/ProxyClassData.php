@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Proxy\Model;
+namespace ClassProxy\Proxy\Model;
 
 class ProxyClassData
 {

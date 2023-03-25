@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\_data;
+namespace ClassProxy\Tests\_data;
 
 class BlablaRepoClass implements RepoInterface
 {

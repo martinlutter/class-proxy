@@ -25,12 +25,12 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "ClassProxy\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "App\\Tests\\": "tests/"
+            "ClassProxy\\Tests\\": "tests/"
         }
     },
     "replace": {

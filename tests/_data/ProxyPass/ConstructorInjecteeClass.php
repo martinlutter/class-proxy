@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Tests\_data\ProxyPass;
+namespace ClassProxy\Tests\_data\ProxyPass;
 
-use App\DependencyInjection\Attribute\Cache;
-use App\Tests\_data\RepoInterface;
+use ClassProxy\DependencyInjection\Attribute\Cache;
+use ClassProxy\Tests\_data\RepoInterface;
 
 class ConstructorInjecteeClass
 {

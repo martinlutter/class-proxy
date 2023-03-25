@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Tests\unit;
+namespace ClassProxy\Tests\unit;
 
-use App\Tests\_data\ProxyGenerator\EmptyClass;
-use App\Tests\_data\ProxyGenerator\MultiplePublicMethodsClass;
-use App\Tests\_data\ProxyGenerator\OnePublicMethodClass;
-use App\Proxy\ProxyGenerator;
+use ClassProxy\Tests\_data\ProxyGenerator\EmptyClass;
+use ClassProxy\Tests\_data\ProxyGenerator\MultiplePublicMethodsClass;
+use ClassProxy\Tests\_data\ProxyGenerator\OnePublicMethodClass;
+use ClassProxy\Proxy\ProxyGenerator;
 use Codeception\Test\Unit;
 
 class ProxyGeneratorTest extends Unit

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Proxy;
+namespace ClassProxy\Proxy;
 
-use App\Proxy\Model\ProxyClassData;
+use ClassProxy\Proxy\Model\ProxyClassData;
 use Symfony\Contracts\Service\Attribute\Required;
 
 class ProxyGenerator

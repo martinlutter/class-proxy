@@ -1,10 +1,10 @@
 <?php
 
-namespace App\DependencyInjection\Compiler;
+namespace ClassProxy\DependencyInjection\Compiler;
 
-use App\DependencyInjection\Attribute\Cache;
-use App\Proxy\Model\ProxyClassData;
-use App\Proxy\ProxyGenerator;
+use ClassProxy\DependencyInjection\Attribute\Cache;
+use ClassProxy\Proxy\Model\ProxyClassData;
+use ClassProxy\Proxy\ProxyGenerator;
 use Symfony\Component\Config\ConfigCacheFactory;
 use Symfony\Component\Config\ConfigCacheFactoryInterface;
 use Symfony\Component\Config\ConfigCacheInterface;

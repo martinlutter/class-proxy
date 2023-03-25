@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Proxy;
+namespace ClassProxy\Proxy;
 
 use InvalidArgumentException;
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Tests\unit;
+namespace ClassProxy\Tests\unit;
 
-use App\DependencyInjection\Compiler\ProxyPass;
-use App\Tests\_data\ProxyPass\ConstructorInjecteeClass;
-use App\Tests\_data\ProxyPass\MethodInjecteeClass;
-use App\Tests\_data\RepoClass;
+use ClassProxy\DependencyInjection\Compiler\ProxyPass;
+use ClassProxy\Tests\_data\ProxyPass\ConstructorInjecteeClass;
+use ClassProxy\Tests\_data\ProxyPass\MethodInjecteeClass;
+use ClassProxy\Tests\_data\RepoClass;
 use Codeception\Test\Unit;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;

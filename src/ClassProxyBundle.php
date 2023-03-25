@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App;
+namespace ClassProxy;
 
-use App\DependencyInjection\Compiler\ProxyPass;
-use App\Proxy\Autoloader;
+use ClassProxy\DependencyInjection\Compiler\ProxyPass;
+use ClassProxy\Proxy\Autoloader;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
