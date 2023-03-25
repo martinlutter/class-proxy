@@ -3,7 +3,7 @@
 namespace App\Tests\_data\ProxyPass;
 
 use App\DependencyInjection\Attribute\Cache;
-use App\Process\Home\RepoInterface;
+use App\Tests\_data\RepoInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 class MethodInjecteeClass

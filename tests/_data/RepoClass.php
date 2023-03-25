@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Process\Home;
+namespace App\Tests\_data;
 
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Service\Attribute\Required;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Util;
+namespace App\Proxy;
 
-use App\Util\Model\ProxyClassData;
+use App\Proxy\Model\ProxyClassData;
 use Symfony\Contracts\Service\Attribute\Required;
 
 class ProxyGenerator
@@ -49,7 +49,6 @@ PROXY;
             $parametersWithTypes = [];
             $parametersWithoutTypes = [];
             foreach ($method->getParameters() as $parameter) {
-                //todo: what about method/param attributes? check what doctrine does
                 $parametersWithTypes[] = self::stringifyTypes($parameter->getType()).' '
                     .($parameter->isPassedByReference() ? '&' : '')
                     .($parameter->isVariadic() ? '...' : '')

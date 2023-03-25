@@ -5,7 +5,7 @@ namespace App\Tests\unit;
 use App\Tests\_data\ProxyGenerator\EmptyClass;
 use App\Tests\_data\ProxyGenerator\MultiplePublicMethodsClass;
 use App\Tests\_data\ProxyGenerator\OnePublicMethodClass;
-use App\Util\ProxyGenerator;
+use App\Proxy\ProxyGenerator;
 use Codeception\Test\Unit;
 
 class ProxyGeneratorTest extends Unit

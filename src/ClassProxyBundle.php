@@ -1,28 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App;
 
 use App\DependencyInjection\Compiler\ProxyPass;
-use App\Util\Autoloader;
-use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
+use App\Proxy\Autoloader;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Kernel as BaseKernel;
+use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
-class Kernel extends BaseKernel
+/**
+ * @psalm-suppress UnusedClass
+ */
+class ClassProxyBundle extends AbstractBundle
 {
-    use MicroKernelTrait;
-
-    protected function build(ContainerBuilder $container): void
+    public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new ProxyPass(), PassConfig::TYPE_REMOVE);
     }
 
     public function boot(): void
     {
-        parent::boot();
-
-        $cacheDir = $this->getContainer()->getParameter('kernel.cache_dir').'/ProxyCache';
+        $cacheDir = $this->container->getParameter('kernel.cache_dir').'/ProxyCache';
         Autoloader::register($cacheDir, 'ProxyCache\\Generated');
     }
 }

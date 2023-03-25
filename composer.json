@@ -1,25 +1,24 @@
 {
-    "name": "symfony/skeleton",
-    "type": "project",
+    "name": "martinlutter/class-proxy",
+    "type": "symfony-bundle",
     "license": "MIT",
-    "description": "A minimal Symfony project recommended to create bare bones applications",
+    "description": "",
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
         "php": "^8.1",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "symfony/console": "6.2.*",
-        "symfony/dotenv": "6.2.*",
+        "symfony/cache": "6.2.*",
+        "symfony/config": "6.2.*",
+        "symfony/dependency-injection": "6.2.*",
         "symfony/flex": "^2",
-        "symfony/framework-bundle": "6.2.*",
-        "symfony/runtime": "6.2.*",
+        "symfony/http-kernel": "6.2.*",
         "symfony/yaml": "6.2.*"
     },
     "config": {
         "allow-plugins": {
-            "symfony/flex": true,
-            "symfony/runtime": true
+            "symfony/flex": true
         },
         "sort-packages": true
     },
@@ -44,8 +43,7 @@
     },
     "scripts": {
         "auto-scripts": {
-            "cache:clear": "symfony-cmd",
-            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+
         },
         "post-install-cmd": [
             "@auto-scripts"
@@ -67,6 +65,7 @@
     "require-dev": {
         "codeception/codeception": "^5.0",
         "codeception/module-asserts": "^3.0",
+        "roave/security-advisories": "dev-latest",
         "vimeo/psalm": "^5.4"
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Util;
+namespace App\Proxy;
 
 use InvalidArgumentException;
 
@@ -38,7 +38,7 @@ class Autoloader
      *
      * @throws InvalidArgumentException
      */
-    public static function register(string $proxyDir, string $proxyNamespace): \Closure
+    public static function register(string $proxyDir, string $proxyNamespace): void
     {
         $proxyNamespace = ltrim($proxyNamespace, '\\');
 
@@ -58,7 +58,5 @@ class Autoloader
         };
 
         spl_autoload_register($autoloader);
-
-        return $autoloader;
     }
 }

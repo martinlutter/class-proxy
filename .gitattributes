@@ -14,3 +14,13 @@ bin/console text eol=lf
 
 *.ico binary
 *.png binary
+
+/docker* export-ignore
+/docs export-ignore
+/tests export-ignore
+/var export-ignore
+
+/codeception.yml export-ignore
+/Dockerfile export-ignore
+/phpunit.xml.dist export-ignore
+/psalm.xml export-ignore

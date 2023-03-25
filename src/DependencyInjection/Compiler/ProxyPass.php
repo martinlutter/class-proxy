@@ -3,8 +3,8 @@
 namespace App\DependencyInjection\Compiler;
 
 use App\DependencyInjection\Attribute\Cache;
-use App\Util\Model\ProxyClassData;
-use App\Util\ProxyGenerator;
+use App\Proxy\Model\ProxyClassData;
+use App\Proxy\ProxyGenerator;
 use Symfony\Component\Config\ConfigCacheFactory;
 use Symfony\Component\Config\ConfigCacheFactoryInterface;
 use Symfony\Component\Config\ConfigCacheInterface;

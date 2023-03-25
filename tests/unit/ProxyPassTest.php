@@ -3,9 +3,9 @@
 namespace App\Tests\unit;
 
 use App\DependencyInjection\Compiler\ProxyPass;
-use App\Process\Home\RepoClass;
 use App\Tests\_data\ProxyPass\ConstructorInjecteeClass;
 use App\Tests\_data\ProxyPass\MethodInjecteeClass;
+use App\Tests\_data\RepoClass;
 use Codeception\Test\Unit;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;

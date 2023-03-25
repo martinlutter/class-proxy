@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Process\Home;
+namespace App\Tests\_data;
 
 interface RepoInterface
 {
