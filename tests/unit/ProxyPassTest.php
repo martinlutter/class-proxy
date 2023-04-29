@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ClassProxy\Tests\unit;
 
+use ClassProxy\ClassProxyBundle;
 use ClassProxy\DependencyInjection\Compiler\ProxyPass;
 use ClassProxy\Tests\_data\ProxyPass\ConstructorInjecteeClass;
 use ClassProxy\Tests\_data\ProxyPass\MethodInjecteeClass;
@@ -16,12 +19,23 @@ use function Symfony\Component\String\s;
 class ProxyPassTest extends Unit
 {
     private string $cacheDir;
+    private ?ContainerBuilder $containerBuilder;
 
     protected function _before(): void
     {
         $this->cacheDir = codecept_root_dir('var/cache/test');
+
+        $this->containerBuilder = new ContainerBuilder();
+        $this->containerBuilder->setParameter('kernel.debug', true);
+        $this->containerBuilder->setParameter('kernel.cache_dir', $this->cacheDir);
+        $this->containerBuilder->addCompilerPass(new ProxyPass());
+        $this->containerBuilder->addCompilerPass(new ProxyPass(), PassConfig::TYPE_REMOVE);
     }
 
+    protected function _after(): void
+    {
+        $this->containerBuilder = null;
+    }
 
     public function testConstructorArgumentReplacement(): void
     {
@@ -30,6 +44,7 @@ class ProxyPassTest extends Unit
                 ->register('injectee', ConstructorInjecteeClass::class)
                 ->setArguments([new Reference('repo_class')])
         );
+        $this->containerBuilder->compile();
 
         /** @var Definition $argumentDef */
         $argumentDef = $injecteeDef->getArgument(0);
@@ -49,6 +64,7 @@ class ProxyPassTest extends Unit
                 ->register('injectee', MethodInjecteeClass::class)
                 ->addMethodCall('setDependencies', [new Reference('repo_class')])
         );
+        $this->containerBuilder->compile();
 
         /** @var Definition $argumentDef */
         $argumentDef = $injecteeDef->getMethodCalls()[0][1][0];
@@ -61,6 +77,42 @@ class ProxyPassTest extends Unit
         $this->assertEquals($originalClassDef->getMethodCalls(), $argumentDef->getMethodCalls());
     }
 
+    public function testMultipleServicesOfSameClass(): void
+    {
+        $this->containerBuilder
+            ->register('repo_class_another', RepoClass::class)
+            ->setArguments(['$projectDir' => '/var/www', '$customValue' => 12345])
+            ->addMethodCall('setDependencies', ['$projectDir' => '/var/www'])
+        ;
+        $this->registerServices(
+            fn (ContainerBuilder $builder) => $builder
+                ->register('injectee1', ConstructorInjecteeClass::class)
+                ->setArguments([new Reference('repo_class')])
+        );
+        $this->registerServices(
+            fn (ContainerBuilder $builder) => $builder
+                ->register('injectee2', ConstructorInjecteeClass::class)
+                ->setArguments([new Reference('repo_class_another')])
+        );
+        $this->containerBuilder->compile();
+
+        $bundle = new ClassProxyBundle();
+        $bundle->setContainer($this->containerBuilder);
+        $bundle->boot();
+
+        /** @var ConstructorInjecteeClass $injectee */
+        $injectee = $this->containerBuilder->get('injectee1');
+        /** @var RepoClass $repo */
+        $repo = $injectee->getRepo();
+        $this->assertEquals(0, $repo->getCustomValue());
+
+        /** @var ConstructorInjecteeClass $injectee */
+        $injectee = $this->containerBuilder->get('injectee2');
+        /** @var RepoClass $repo */
+        $repo = $injectee->getRepo();
+        $this->assertEquals(12345, $repo->getCustomValue());
+    }
+
     /**
      * @param callable(ContainerBuilder): Definition $build
      *
@@ -68,21 +120,14 @@ class ProxyPassTest extends Unit
      */
     private function registerServices(callable $build): array
     {
-        $containerBuilder = new ContainerBuilder();
-        $containerBuilder->setParameter('kernel.debug', true);
-        $containerBuilder->setParameter('kernel.cache_dir', $this->cacheDir);
-
-        $originalClassDef = $containerBuilder
+        $originalClassDef = $this->containerBuilder
             ->register('repo_class', RepoClass::class)
             ->setArguments(['$projectDir' => '/var/www'])
             ->addMethodCall('setDependencies', ['$projectDir' => '/var/www'])
         ;
-        $injecteeDef = $build($containerBuilder)
+        $injecteeDef = $build($this->containerBuilder)
             ->setPublic(true)
         ;
-
-        $containerBuilder->addCompilerPass(new ProxyPass(), PassConfig::TYPE_REMOVE);
-        $containerBuilder->compile();
 
         $this->assertNotEmpty($originalClassDef->getArguments());
 

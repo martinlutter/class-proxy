@@ -4,7 +4,7 @@
 This package lets you easily cache results in memory from your injected objects without having to write boilerplate code.
 
 It's meant for simple use cases, for methods without big/complex parameters or results. Results are stored in memory, so it will be allocated until the request ends.  
-More details [below](#How it works).
+More details below.
 
 ## Install
 ```
@@ -27,7 +27,7 @@ use ClassProxy\DependencyInjection\Attribute\Cache;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[Required]
-public function setDependencies(#[Cache] private readonly RepositoryInterface $repository): void
+public function setDependencies(#[Cache] RepositoryInterface $repository): void
 {
     $this->repository = $repository;
 }

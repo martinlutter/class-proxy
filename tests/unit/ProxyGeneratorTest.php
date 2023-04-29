@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ClassProxy\Tests\unit;
 
 use ClassProxy\Tests\_data\ProxyGenerator\EmptyClass;

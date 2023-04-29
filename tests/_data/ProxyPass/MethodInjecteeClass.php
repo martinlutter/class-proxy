@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ClassProxy\Tests\_data\ProxyPass;
 
 use ClassProxy\DependencyInjection\Attribute\Cache;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ClassProxy\Tests\_data;
 
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -7,11 +9,10 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 class RepoClass implements RepoInterface
 {
-    private string $projectDir;
-
-    public function __construct(#[Autowire('%kernel.project_dir%')] string $projectDir)
-    {
-        $this->projectDir = $projectDir;
+    public function __construct(
+        #[Autowire('%kernel.project_dir%')] private string $projectDir,
+        private int $customValue = 0
+    ) {
     }
 
     #[Required]
@@ -24,16 +25,19 @@ class RepoClass implements RepoInterface
     {
         return $this->projectDir;
     }
-    
+
     public function byStringParam(string $param): string
     {
-        dump('dump from repo class');
         return "Wowee by string - $param";
     }
 
     public function byIntParam(?int $param): int
     {
-        dump('dump from repo class');
         return (int) $param;
+    }
+
+    public function getCustomValue(): int
+    {
+        return $this->customValue;
     }
 }

@@ -17,6 +17,7 @@ class ClassProxyBundle extends AbstractBundle
 {
     public function build(ContainerBuilder $container): void
     {
+        $container->addCompilerPass(new ProxyPass());
         $container->addCompilerPass(new ProxyPass(), PassConfig::TYPE_REMOVE);
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ClassProxy\DependencyInjection\Compiler;
 
 use ClassProxy\DependencyInjection\Attribute\Cache;
@@ -11,11 +13,14 @@ use Symfony\Component\Config\ConfigCacheInterface;
 use Symfony\Component\DependencyInjection\Compiler\AbstractRecursivePass;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\OutOfBoundsException;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Contracts\Service\Attribute\Required;
 
 class ProxyPass extends AbstractRecursivePass
 {
     private ?ConfigCacheFactoryInterface $configCacheFactory = null;
+    private static array $methodReferenceMap = [];
+    private static array $constructorReferenceMap = [];
 
     protected function processValue(mixed $value, bool $isRoot = false)
     {
@@ -46,8 +51,16 @@ class ProxyPass extends AbstractRecursivePass
                         continue;
                     }
 
-                    /** @var Definition $argumentDef */
+                    /** @var Definition|Reference $argumentDef */
                     $argumentDef = $arguments[$parameter->getPosition()];
+                    if ($argumentDef instanceof Reference) {
+                        //PassConfig::BEFORE_OPTIMIZATION
+                        $id = (string) $argumentDef;
+                        self::$methodReferenceMap[$this->currentId][$method->getName()][$parameter->getPosition()] = $id;
+
+                        continue;
+                    }
+
                     $argumentClass = $argumentDef->getClass();
                     if (!$argumentClass) {
                         continue;
@@ -59,7 +72,11 @@ class ProxyPass extends AbstractRecursivePass
                     }
 
                     $proxyClassData = ProxyGenerator::generate($argumentClass, $argumentClassReflection);
-                    $arguments[$parameter->getPosition()] = $this->getProxyDefinition($proxyClassData, $argumentDef);
+                    $arguments[$parameter->getPosition()] = $this->getProxyDefinition(
+                        $proxyClassData,
+                        $argumentDef,
+                        static::$methodReferenceMap[$this->currentId][$method->getName()][$parameter->getPosition()]
+                    );
                     $methodCall = [$methodName, $arguments];
 
                     $this->cacheClass($proxyClassData);
@@ -74,8 +91,16 @@ class ProxyPass extends AbstractRecursivePass
                 continue;
             }
 
-            /** @var Definition $argumentDef */
+            /** @var Definition|Reference $argumentDef */
             $argumentDef = $processedValue->getArgument($parameter->getPosition());
+            if ($argumentDef instanceof Reference) {
+                //PassConfig::BEFORE_OPTIMIZATION
+                $id = (string) $argumentDef;
+                self::$constructorReferenceMap[$this->currentId][$parameter->getPosition()] = $id;
+
+                continue;
+            }
+
             $argumentClass = $argumentDef->getClass();
             if (!$argumentClass) {
                 continue;
@@ -87,7 +112,11 @@ class ProxyPass extends AbstractRecursivePass
             }
 
             $proxyClassData = ProxyGenerator::generate($argumentClass, $argumentClassReflection);
-            $proxyDef = $this->getProxyDefinition($proxyClassData, $argumentDef);
+            $proxyDef = $this->getProxyDefinition(
+                $proxyClassData,
+                $argumentDef,
+                self::$constructorReferenceMap[$this->currentId][$parameter->getPosition()]
+            );
 
             try {
                 $processedValue->replaceArgument('$'.$parameter->getName(), $proxyDef);
@@ -113,9 +142,9 @@ class ProxyPass extends AbstractRecursivePass
         return $this->container->getParameter('kernel.cache_dir').'/ProxyCache';
     }
 
-    private function getProxyDefinition(ProxyClassData $proxyClassData, Definition $argumentDefinition): Definition
+    private function getProxyDefinition(ProxyClassData $proxyClassData, Definition $argumentDefinition, string $argumentServiceId): Definition
     {
-        $proxyServiceId = "proxy_cache.$proxyClassData->hash";
+        $proxyServiceId = "proxy_cache.$proxyClassData->hash.$argumentServiceId";
         if ($this->container->hasDefinition($proxyServiceId)) {
             return $this->container->getDefinition($proxyServiceId);
         }
