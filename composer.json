@@ -9,12 +9,12 @@
         "php": "^8.1",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "symfony/cache": "6.2.*",
-        "symfony/config": "6.2.*",
-        "symfony/dependency-injection": "6.2.*",
+        "symfony/cache": "^6.4",
+        "symfony/config": "^6.4",
+        "symfony/dependency-injection": "^6.4",
         "symfony/flex": "^2",
-        "symfony/http-kernel": "6.2.*",
-        "symfony/yaml": "6.2.*"
+        "symfony/http-kernel": "^6.4",
+        "symfony/yaml": "^6.4"
     },
     "config": {
         "allow-plugins": {
@@ -48,7 +48,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "6.2.*",
+            "require": "6.4.*",
             "docker": true
         }
     },

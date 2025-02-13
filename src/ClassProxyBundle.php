@@ -23,7 +23,7 @@ class ClassProxyBundle extends AbstractBundle
 
     public function boot(): void
     {
-        $cacheDir = $this->container->getParameter('kernel.cache_dir').'/ProxyCache';
+        $cacheDir = $this->container?->getParameter('kernel.cache_dir').'/ProxyCache';
         Autoloader::register($cacheDir, 'ProxyCache\\Generated');
     }
 }

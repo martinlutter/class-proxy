@@ -26,7 +26,7 @@ class ProxyPass extends AbstractRecursivePass
     {
         $processedValue = parent::processValue($value, $isRoot);
 
-        if (!$processedValue instanceof Definition || $processedValue->isAbstract() || !$processedValue->getClass()) {
+        if (!$processedValue instanceof Definition || $processedValue->isAbstract() || $processedValue->getClass() === null) {
             return $processedValue;
         }
 
@@ -62,7 +62,7 @@ class ProxyPass extends AbstractRecursivePass
                     }
 
                     $argumentClass = $argumentDef->getClass();
-                    if (!$argumentClass) {
+                    if ($argumentClass === null) {
                         continue;
                     }
 
@@ -102,7 +102,7 @@ class ProxyPass extends AbstractRecursivePass
             }
 
             $argumentClass = $argumentDef->getClass();
-            if (!$argumentClass) {
+            if ($argumentClass === null) {
                 continue;
             }
 
